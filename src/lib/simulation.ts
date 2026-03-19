@@ -27,9 +27,20 @@ export interface MonthData {
   marginPerClient: number;
 }
 
+export interface BreakEvenDetails {
+  month: number;
+  customers: number;
+  revenue: number;
+  totalCost: number;
+  marginPct: number;
+  cumulativeLoss: number;
+  marginPerClient: number;
+}
+
 export interface KPIs {
   breakEvenMonth: number | null;
   breakEvenCustomers: number | null;
+  breakEvenDetails: BreakEvenDetails | null;
   paybackMonths: number;
   ltv: number;
   ltvCacRatio: number;
@@ -42,6 +53,7 @@ export function runSimulation(p: SimParams): { data: MonthData[]; kpis: KPIs } {
   let cumProfit = 0;
   let breakEvenMonth: number | null = null;
   let breakEvenCustomers: number | null = null;
+  let breakEvenDetails: BreakEvenDetails | null = null;
 
   for (let t = 0; t < p.months; t++) {
     const customers = Math.round(p.n0 * Math.pow(1 + p.growthRate, t));
@@ -62,6 +74,15 @@ export function runSimulation(p: SimParams): { data: MonthData[]; kpis: KPIs } {
     if (breakEvenMonth === null && profit >= 0) {
       breakEvenMonth = t + 1;
       breakEvenCustomers = customers;
+      breakEvenDetails = {
+        month: t + 1,
+        customers,
+        revenue,
+        totalCost,
+        marginPct: marginPct * 100,
+        cumulativeLoss: cumProfit - profit, // accumulated loss before this month
+        marginPerClient: p.ticket - (p.ticket * p.alpha * (1 - marginPct)),
+      };
     }
 
     const marginPerClient = p.ticket - (p.ticket * p.alpha * (1 - marginPct));
@@ -94,6 +115,7 @@ export function runSimulation(p: SimParams): { data: MonthData[]; kpis: KPIs } {
     kpis: {
       breakEvenMonth,
       breakEvenCustomers,
+      breakEvenDetails,
       paybackMonths: Math.round(paybackMonths * 10) / 10,
       ltv: Math.round(ltv * 100) / 100,
       ltvCacRatio: Math.round(ltvCacRatio * 100) / 100,
