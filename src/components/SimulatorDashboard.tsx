@@ -4,7 +4,7 @@ import {
   ResponsiveContainer, ReferenceLine, Area, AreaChart, Legend,
 } from "recharts";
 import { runSimulation, type SimParams } from "@/lib/simulation";
-import { ParamSlider } from "./ParamSlider";
+import { ParamInput } from "./ParamInput";
 import { KpiCard } from "./KpiCard";
 
 const DEFAULT_PARAMS: SimParams = {
