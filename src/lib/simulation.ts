@@ -74,6 +74,15 @@ export function runSimulation(p: SimParams): { data: MonthData[]; kpis: KPIs } {
     if (breakEvenMonth === null && profit >= 0) {
       breakEvenMonth = t + 1;
       breakEvenCustomers = customers;
+      breakEvenDetails = {
+        month: t + 1,
+        customers,
+        revenue,
+        totalCost,
+        marginPct: marginPct * 100,
+        cumulativeLoss: cumProfit - profit, // accumulated loss before this month
+        marginPerClient: p.ticket - (p.ticket * p.alpha * (1 - marginPct)),
+      };
     }
 
     const marginPerClient = p.ticket - (p.ticket * p.alpha * (1 - marginPct));
