@@ -115,6 +115,7 @@ export function runSimulation(p: SimParams): { data: MonthData[]; kpis: KPIs } {
     kpis: {
       breakEvenMonth,
       breakEvenCustomers,
+      breakEvenDetails,
       paybackMonths: Math.round(paybackMonths * 10) / 10,
       ltv: Math.round(ltv * 100) / 100,
       ltvCacRatio: Math.round(ltvCacRatio * 100) / 100,

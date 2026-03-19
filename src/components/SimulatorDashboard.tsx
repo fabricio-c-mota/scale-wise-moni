@@ -88,6 +88,7 @@ export function SimulatorDashboard() {
           value={fmt(kpis.finalMonthlyProfit)}
           variant={kpis.finalMonthlyProfit >= 0 ? "profit" : "loss"}
         />
+        <BreakEvenCard details={kpis.breakEvenDetails} />
       </div>
 
       <div className="grid lg:grid-cols-[320px_1fr] gap-6">
