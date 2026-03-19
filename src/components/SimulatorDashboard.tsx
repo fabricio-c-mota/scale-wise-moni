@@ -6,6 +6,7 @@ import {
 import { runSimulation, type SimParams } from "@/lib/simulation";
 import { ParamInput } from "./ParamInput";
 import { KpiCard } from "./KpiCard";
+import { BreakEvenCard } from "./BreakEvenCard";
 
 const DEFAULT_PARAMS: SimParams = {
   n0: 100,
