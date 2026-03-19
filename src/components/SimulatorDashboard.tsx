@@ -4,7 +4,7 @@ import {
   ResponsiveContainer, ReferenceLine, Area, AreaChart, Legend,
 } from "recharts";
 import { runSimulation, type SimParams } from "@/lib/simulation";
-import { ParamSlider } from "./ParamSlider";
+import { ParamInput } from "./ParamInput";
 import { KpiCard } from "./KpiCard";
 
 const DEFAULT_PARAMS: SimParams = {
@@ -91,18 +91,20 @@ export function SimulatorDashboard() {
 
       <div className="grid lg:grid-cols-[320px_1fr] gap-6">
         {/* Controls */}
-        <div className="space-y-5 bg-card border border-border rounded-lg p-5 h-fit animate-fade-in">
+        <div className="space-y-4 bg-card border border-border rounded-lg p-5 h-fit animate-fade-in">
           <h2 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground">Parâmetros</h2>
-          <ParamSlider label="Clientes iniciais" value={params.n0} min={10} max={1000} step={10} onChange={set("n0")} />
-          <ParamSlider label="Crescimento mensal" value={params.growthRate} min={0.01} max={0.5} step={0.01} onChange={set("growthRate")} format={(v) => `${(v * 100).toFixed(0)}%`} />
-          <ParamSlider label="Horizonte (meses)" value={params.months} min={6} max={60} step={1} onChange={set("months")} />
-          <ParamSlider label="Ticket médio" value={params.ticket} min={20} max={500} step={10} onChange={set("ticket")} suffix=" R$" />
-          <ParamSlider label="Fator de crédito (α)" value={params.alpha} min={1.0} max={1.3} step={0.01} onChange={set("alpha")} format={(v) => v.toFixed(2)} />
-          <ParamSlider label="Margem máx. varejista" value={params.mMax} min={0.01} max={0.4} step={0.01} onChange={set("mMax")} format={(v) => `${(v * 100).toFixed(0)}%`} />
-          <ParamSlider label="Vel. margem (k)" value={params.k} min={0.000005} max={0.0002} step={0.000005} onChange={set("k")} format={(v) => v.toFixed(6)} />
-          <ParamSlider label="CAC" value={params.cac} min={5} max={200} step={5} onChange={set("cac")} suffix=" R$" />
-          <ParamSlider label="Custos fixos" value={params.fixedCosts} min={1000} max={100000} step={1000} onChange={set("fixedCosts")} format={fmt} />
-          <ParamSlider label="Retenção média" value={params.retention} min={3} max={48} step={1} onChange={set("retention")} suffix=" meses" />
+          <div className="grid grid-cols-2 gap-3">
+            <ParamInput label="Clientes iniciais" value={params.n0} min={10} max={10000} step={10} onChange={set("n0")} />
+            <ParamInput label="Crescimento mensal" value={params.growthRate} min={0.01} max={0.5} step={0.01} onChange={set("growthRate")} />
+            <ParamInput label="Horizonte (meses)" value={params.months} min={6} max={60} step={1} onChange={set("months")} suffix="meses" />
+            <ParamInput label="Ticket médio" value={params.ticket} min={20} max={5000} step={10} onChange={set("ticket")} suffix="R$" />
+            <ParamInput label="Fator de crédito (α)" value={params.alpha} min={1.0} max={1.3} step={0.01} onChange={set("alpha")} />
+            <ParamInput label="Margem máx. varejista" value={params.mMax} min={0.01} max={0.4} step={0.01} onChange={set("mMax")} />
+            <ParamInput label="Vel. margem (k)" value={params.k} min={0.000005} max={0.0002} step={0.000005} onChange={set("k")} />
+            <ParamInput label="CAC" value={params.cac} min={5} max={1000} step={5} onChange={set("cac")} suffix="R$" />
+            <ParamInput label="Custos fixos" value={params.fixedCosts} min={1000} max={1000000} step={1000} onChange={set("fixedCosts")} suffix="R$" />
+            <ParamInput label="Retenção média" value={params.retention} min={3} max={48} step={1} onChange={set("retention")} suffix="meses" />
+          </div>
         </div>
 
         {/* Charts */}
