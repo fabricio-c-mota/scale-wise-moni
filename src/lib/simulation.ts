@@ -27,9 +27,20 @@ export interface MonthData {
   marginPerClient: number;
 }
 
+export interface BreakEvenDetails {
+  month: number;
+  customers: number;
+  revenue: number;
+  totalCost: number;
+  marginPct: number;
+  cumulativeLoss: number;
+  marginPerClient: number;
+}
+
 export interface KPIs {
   breakEvenMonth: number | null;
   breakEvenCustomers: number | null;
+  breakEvenDetails: BreakEvenDetails | null;
   paybackMonths: number;
   ltv: number;
   ltvCacRatio: number;
