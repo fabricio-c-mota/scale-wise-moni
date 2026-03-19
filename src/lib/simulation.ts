@@ -53,6 +53,7 @@ export function runSimulation(p: SimParams): { data: MonthData[]; kpis: KPIs } {
   let cumProfit = 0;
   let breakEvenMonth: number | null = null;
   let breakEvenCustomers: number | null = null;
+  let breakEvenDetails: BreakEvenDetails | null = null;
 
   for (let t = 0; t < p.months; t++) {
     const customers = Math.round(p.n0 * Math.pow(1 + p.growthRate, t));
