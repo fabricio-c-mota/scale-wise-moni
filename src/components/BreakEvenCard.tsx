@@ -15,7 +15,7 @@ interface Props {
 export function BreakEvenCard({ details }: Props) {
   if (!details) {
     return (
-      <div className="col-span-full rounded-lg border border-destructive/30 bg-card p-5 animate-fade-in">
+      <div className="col-span-full rounded-lg border border-destructive/30 bg-card p-5 animate-fade-in shadow-sm">
         <div className="flex items-center gap-2 mb-2">
           <div className="w-2.5 h-2.5 rounded-full bg-destructive animate-pulse" />
           <h3 className="text-sm font-semibold uppercase tracking-wider text-destructive">
@@ -32,14 +32,6 @@ export function BreakEvenCard({ details }: Props) {
 
   return (
     <>
-      <div className="col-span-full">
-        <div className="flex items-center gap-2 mb-1">
-          <div className="w-2.5 h-2.5 rounded-full bg-profit" />
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-profit">
-            O jogo virou — Break-even
-          </h3>
-        </div>
-      </div>
       <KpiCard title="Mês do Break-even" value={`Mês ${details.month}`} variant="profit" />
       <KpiCard title="Clientes necessários" value={details.customers.toLocaleString("pt-BR")} variant="profit" />
       <KpiCard title="Receita no mês" value={fmt(details.revenue)} />

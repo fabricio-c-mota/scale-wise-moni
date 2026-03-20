@@ -44,6 +44,9 @@ export interface KPIs {
   paybackMonths: number;
   ltv: number;
   ltvCacRatio: number;
+  viabilityMarginThresholdPct: number;
+  finalRetailMarginPct: number;
+  isViableAtFinalMonth: boolean;
   finalMarginPct: number;
   finalMonthlyProfit: number;
 }
@@ -109,6 +112,9 @@ export function runSimulation(p: SimParams): { data: MonthData[]; kpis: KPIs } {
   const paybackMonths = avgMarginPerClient > 0 ? p.cac / avgMarginPerClient : Infinity;
   const ltv = avgMarginPerClient * p.retention;
   const ltvCacRatio = p.cac > 0 ? ltv / p.cac : Infinity;
+  const viabilityMarginThresholdPct = (1 - 1 / p.alpha) * 100;
+  const finalRetailMarginPct = lastMonth.marginPct;
+  const isViableAtFinalMonth = finalRetailMarginPct > viabilityMarginThresholdPct;
 
   return {
     data,
@@ -119,6 +125,9 @@ export function runSimulation(p: SimParams): { data: MonthData[]; kpis: KPIs } {
       paybackMonths: Math.round(paybackMonths * 10) / 10,
       ltv: Math.round(ltv * 100) / 100,
       ltvCacRatio: Math.round(ltvCacRatio * 100) / 100,
+      viabilityMarginThresholdPct: Math.round(viabilityMarginThresholdPct * 100) / 100,
+      finalRetailMarginPct: Math.round(finalRetailMarginPct * 100) / 100,
+      isViableAtFinalMonth,
       finalMarginPct: lastMonth.marginPct,
       finalMonthlyProfit: lastMonth.profit,
     },

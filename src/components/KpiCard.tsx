@@ -13,11 +13,18 @@ export function KpiCard({ title, value, subtitle, variant = "default" }: Props) 
     warning: "text-warning",
   }[variant];
 
+  const accentClass = {
+    default: "border-border",
+    profit: "border-profit/40",
+    loss: "border-loss/40",
+    warning: "border-warning/40",
+  }[variant];
+
   return (
-    <div className="rounded-lg bg-card border border-border p-4 animate-fade-in">
-      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">{title}</p>
-      <p className={`text-2xl font-bold font-mono ${colorClass}`}>{value}</p>
-      {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
+    <div className={`h-full min-h-[138px] rounded-lg bg-card border ${accentClass} p-4 animate-fade-in shadow-sm flex flex-col justify-between`}>
+      <p className="text-[11px] text-muted-foreground uppercase tracking-[0.14em] mb-2">{title}</p>
+      <p className={`text-2xl md:text-[1.65rem] leading-tight font-bold font-mono ${colorClass}`}>{value}</p>
+      {subtitle && <p className="text-xs text-muted-foreground mt-2 leading-relaxed">{subtitle}</p>}
     </div>
   );
 }
