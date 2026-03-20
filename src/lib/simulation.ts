@@ -18,6 +18,8 @@ export interface MonthData {
   revenue: number;
   volume: number;
   marginPct: number;
+  subsidy: number;
+  cumulativeSubsidy: number;
   creditCost: number;
   productCost: number;
   cacCost: number;
@@ -47,6 +49,8 @@ export interface KPIs {
   viabilityMarginThresholdPct: number;
   finalRetailMarginPct: number;
   isViableAtFinalMonth: boolean;
+  finalMonthlySubsidy: number;
+  cumulativeSubsidy: number;
   finalMarginPct: number;
   finalMonthlyProfit: number;
 }
@@ -54,6 +58,7 @@ export interface KPIs {
 export function runSimulation(p: SimParams): { data: MonthData[]; kpis: KPIs } {
   const data: MonthData[] = [];
   let cumProfit = 0;
+  let cumSubsidy = 0;
   let breakEvenMonth: number | null = null;
   let breakEvenCustomers: number | null = null;
   let breakEvenDetails: BreakEvenDetails | null = null;
@@ -66,6 +71,8 @@ export function runSimulation(p: SimParams): { data: MonthData[]; kpis: KPIs } {
     const revenue = customers * p.ticket;
     const volume = revenue;
     const marginPct = p.mMax * (1 - Math.exp(-p.k * volume));
+    const subsidy = customers * p.ticket * (p.alpha - 1);
+    cumSubsidy += subsidy;
 
     const creditCost = customers * p.ticket * p.alpha;
     const productCost = creditCost * (1 - marginPct);
@@ -97,6 +104,8 @@ export function runSimulation(p: SimParams): { data: MonthData[]; kpis: KPIs } {
       revenue,
       volume,
       marginPct: marginPct * 100,
+      subsidy,
+      cumulativeSubsidy: cumSubsidy,
       creditCost,
       productCost,
       cacCost,
@@ -112,7 +121,7 @@ export function runSimulation(p: SimParams): { data: MonthData[]; kpis: KPIs } {
   const paybackMonths = avgMarginPerClient > 0 ? p.cac / avgMarginPerClient : Infinity;
   const ltv = avgMarginPerClient * p.retention;
   const ltvCacRatio = p.cac > 0 ? ltv / p.cac : Infinity;
-  const viabilityMarginThresholdPct = (1 - 1 / p.alpha) * 100;
+  const viabilityMarginThresholdPct = (p.alpha - 1) * 100;
   const finalRetailMarginPct = lastMonth.marginPct;
   const isViableAtFinalMonth = finalRetailMarginPct > viabilityMarginThresholdPct;
 
@@ -128,6 +137,8 @@ export function runSimulation(p: SimParams): { data: MonthData[]; kpis: KPIs } {
       viabilityMarginThresholdPct: Math.round(viabilityMarginThresholdPct * 100) / 100,
       finalRetailMarginPct: Math.round(finalRetailMarginPct * 100) / 100,
       isViableAtFinalMonth,
+      finalMonthlySubsidy: lastMonth.subsidy,
+      cumulativeSubsidy: lastMonth.cumulativeSubsidy,
       finalMarginPct: lastMonth.marginPct,
       finalMonthlyProfit: lastMonth.profit,
     },

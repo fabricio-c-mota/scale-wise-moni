@@ -14,11 +14,11 @@ const DEFAULT_PARAMS: SimParams = {
   months: 24,
   ticket: 150,
   alpha: 1.05,
-  mMax: 0.15,
-  k: 0.00003,
-  cac: 50,
-  fixedCosts: 100,
-  retention: 18,
+  mMax: 0.12,
+  k: 0.00008,
+  cac: 40,
+  fixedCosts: 1000,
+  retention: 15,
 };
 
 const SCENARIOS: Record<"pessimista" | "realista" | "otimista", SimParams> = {
@@ -93,6 +93,7 @@ export function SimulatorDashboard() {
     { symbol: "alpha", name: "Fator de crédito", value: params.alpha.toFixed(2), meaning: "Multiplica o crédito concedido ao cliente." },
     { symbol: "mMax", name: "Margem máxima varejista", value: `${(params.mMax * 100).toFixed(1)}%`, meaning: "Teto da margem negociável com escala." },
     { symbol: "k", name: "Velocidade da margem", value: params.k.toFixed(6), meaning: "Determina quão rápido a margem aproxima mMax." },
+    { symbol: "S_t", name: "Subsídio mensal", value: fmt(kpis.finalMonthlySubsidy), meaning: "Custo recorrente do crédito ampliado: N_t * T * (alpha - 1)." },
     { symbol: "CAC", name: "Custo de aquisição", value: fmt(params.cac), meaning: "Custo por novo cliente no mês." },
     { symbol: "F", name: "Custos fixos", value: fmt(params.fixedCosts), meaning: "Custos recorrentes mensais do negócio." },
     { symbol: "retention", name: "Retenção média", value: `${params.retention} meses`, meaning: "Tempo médio de permanência do cliente." },
@@ -183,6 +184,18 @@ export function SimulatorDashboard() {
           value={fmt(kpis.finalMonthlyProfit)}
           variant={kpis.finalMonthlyProfit >= 0 ? "profit" : "loss"}
         />
+        <KpiCard
+          title="Subsídio Mensal"
+          value={fmt(kpis.finalMonthlySubsidy)}
+          subtitle="Custo recorrente do crédito ampliado"
+          variant="warning"
+        />
+        <KpiCard
+          title="Subsídio Acumulado"
+          value={fmt(kpis.cumulativeSubsidy)}
+          subtitle="Total concedido até o mês atual"
+          variant="warning"
+        />
       </div>
 
       <div className="mb-3 flex items-end justify-between">
@@ -214,7 +227,7 @@ export function SimulatorDashboard() {
           title="Composição de Custo (Mês Final)"
           value={`Produto ${costMix.product.toFixed(1)}%`}
           detail={`CAC ${costMix.cac.toFixed(1)}% | Fixo ${costMix.fixed.toFixed(1)}%`}
-          explanation="Revela onde o dinheiro está sendo gasto. Ajuda a priorizar ações de otimização na alavanca de maior peso."
+          explanation="Mostra que CAC é pontual (novos clientes), enquanto o custo de produto inclui o subsídio recorrente do crédito ampliado."
         />
         <InsightCard
           title="Situação de Escala"
@@ -229,16 +242,16 @@ export function SimulatorDashboard() {
         <div className="space-y-4 bg-card border border-border rounded-lg p-5 h-fit animate-fade-in shadow-sm lg:sticky lg:top-4">
           <h2 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground">Parâmetros</h2>
           <div className="grid grid-cols-2 gap-3">
-            <ParamInput label="Clientes iniciais" value={params.n0} min={10} max={10000} step={10} onChange={set("n0")} />
-            <ParamInput label="Crescimento mensal" value={params.growthRate} min={0.01} max={0.5} step={0.01} onChange={set("growthRate")} />
-            <ParamInput label="Horizonte (meses)" value={params.months} min={6} max={60} step={1} onChange={set("months")} suffix="meses" />
-            <ParamInput label="Ticket médio" value={params.ticket} min={20} max={5000} step={10} onChange={set("ticket")} suffix="R$" />
-            <ParamInput label="Fator de crédito (α)" value={params.alpha} min={1.0} max={1.3} step={0.01} onChange={set("alpha")} />
-            <ParamInput label="Margem máx. varejista" value={params.mMax} min={0.01} max={0.4} step={0.01} onChange={set("mMax")} />
-            <ParamInput label="Vel. margem (k)" value={params.k} min={0.000005} max={0.0002} step={0.000005} onChange={set("k")} />
-            <ParamInput label="CAC" value={params.cac} min={5} max={1000} step={5} onChange={set("cac")} suffix="R$" />
-            <ParamInput label="Custos fixos" value={params.fixedCosts} min={1000} max={1000000} step={1000} onChange={set("fixedCosts")} suffix="R$" />
-            <ParamInput label="Retenção média" value={params.retention} min={3} max={48} step={1} onChange={set("retention")} suffix="meses" />
+            <ParamInput label="Clientes iniciais" value={params.n0} min={0} step={10} onChange={set("n0")} />
+            <ParamInput label="Crescimento mensal" value={params.growthRate} min={-0.99} step={0.01} onChange={set("growthRate")} />
+            <ParamInput label="Horizonte (meses)" value={params.months} min={1} step={1} onChange={set("months")} suffix="meses" />
+            <ParamInput label="Ticket médio" value={params.ticket} min={0} step={10} onChange={set("ticket")} suffix="R$" />
+            <ParamInput label="Fator de crédito (α)" value={params.alpha} min={0} step={0.01} onChange={set("alpha")} />
+            <ParamInput label="Margem máx. varejista" value={params.mMax} min={0} step={0.01} onChange={set("mMax")} />
+            <ParamInput label="Vel. margem (k)" value={params.k} min={0} step={0.000005} onChange={set("k")} />
+            <ParamInput label="CAC" value={params.cac} min={0} step={5} onChange={set("cac")} suffix="R$" />
+            <ParamInput label="Custos fixos" value={params.fixedCosts} min={0} step={1000} onChange={set("fixedCosts")} suffix="R$" />
+            <ParamInput label="Retenção média" value={params.retention} min={1} step={1} onChange={set("retention")} suffix="meses" />
           </div>
         </div>
 
@@ -339,6 +352,20 @@ export function SimulatorDashboard() {
             </ResponsiveContainer>
           </ChartCard>
 
+          <ChartCard title="Subsídio Mensal e Acumulado">
+            <ResponsiveContainer width="100%" height={260}>
+              <LineChart data={data}>
+                <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
+                <XAxis dataKey="month" stroke={AXIS_STROKE} fontSize={11} tickFormatter={(v) => `M${v}`} />
+                <YAxis stroke={AXIS_STROKE} fontSize={11} tickFormatter={(v) => fmt(v)} />
+                <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => fmt(v)} />
+                <Legend />
+                <Line type="monotone" dataKey="subsidy" stroke="hsl(38, 92%, 60%)" strokeWidth={2} dot={false} name="Subsídio mensal" />
+                <Line type="monotone" dataKey="cumulativeSubsidy" stroke="hsl(20, 85%, 45%)" strokeWidth={2} dot={false} name="Subsídio acumulado" />
+              </LineChart>
+            </ResponsiveContainer>
+          </ChartCard>
+
           {/* Break-even by customers */}
           <ChartCard title="Break-even: Lucro vs Clientes">
             <ResponsiveContainer width="100%" height={260}>
@@ -392,10 +419,10 @@ export function SimulatorDashboard() {
         <div className="bg-card border border-border rounded-lg p-5 animate-fade-in space-y-3">
           <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Como tudo funciona</h3>
           <p className="text-sm text-muted-foreground">1. O sistema projeta clientes mês a mês usando N(t) = N0 * (1 + r)^t.</p>
-          <p className="text-sm text-muted-foreground">2. Com clientes projetados, calcula receita, crédito concedido e margem por escala.</p>
-          <p className="text-sm text-muted-foreground">3. Soma custos de produto, CAC e custos fixos para obter custo total.</p>
-          <p className="text-sm text-muted-foreground">4. Lucro mensal = receita - custo total; o primeiro mês com lucro maior ou igual a 0 marca o break-even.</p>
-          <p className="text-sm text-muted-foreground">5. KPIs de LTV, payback, LTV/CAC e viabilidade mostram sustentabilidade do modelo.</p>
+          <p className="text-sm text-muted-foreground">2. Calcula o subsídio recorrente: S_t = N_t * T * (alpha - 1), custo estrutural do modelo no início.</p>
+          <p className="text-sm text-muted-foreground">3. O CAC é pontual e só incide em novos clientes (não é custo recorrente mensal da base inteira).</p>
+          <p className="text-sm text-muted-foreground">4. Aplica margem por escala m(V_t) e calcula lucro: receita - custo_produto - custo_fixo - CAC.</p>
+          <p className="text-sm text-muted-foreground">5. A virada econômica ocorre quando margem do varejista supera o subsídio unitário: m(V_t) &gt; (alpha - 1).</p>
         </div>
       </div>
 
@@ -407,6 +434,7 @@ export function SimulatorDashboard() {
           <GraphHint title="Lucro Mensal" text="Mostra quando o resultado mensal cruza zero e quando o negócio fica positivo." />
           <GraphHint title="Margem do Varejista vs Volume" text="Mostra ganho de poder de negociação com aumento de volume (escala)." />
           <GraphHint title="Lucro Acumulado" text="Mostra quanto prejuízo total foi absorvido antes de recuperar o investimento." />
+          <GraphHint title="Subsídio Mensal e Acumulado" text="Evidencia explicitamente o custo recorrente do crédito ampliado e seu acúmulo ao longo do tempo." />
           <GraphHint title="Break-even: Lucro vs Clientes" text="Relaciona lucro diretamente ao tamanho da base para identificar clientes necessários." />
         </div>
       </div>

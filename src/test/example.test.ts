@@ -71,8 +71,30 @@ describe("runSimulation", () => {
 
     const { kpis } = runSimulation(params);
 
-    expect(kpis.viabilityMarginThresholdPct).toBeCloseTo(4.76, 2);
+    expect(kpis.viabilityMarginThresholdPct).toBeCloseTo(5, 2);
     expect(kpis.finalRetailMarginPct).toBeGreaterThan(0);
     expect(typeof kpis.isViableAtFinalMonth).toBe("boolean");
+  });
+
+  it("explicita subsidio mensal e acumulado", () => {
+    const params: SimParams = {
+      n0: 100,
+      growthRate: 0,
+      months: 2,
+      ticket: 200,
+      alpha: 1.05,
+      mMax: 0,
+      k: 0,
+      cac: 0,
+      fixedCosts: 0,
+      retention: 12,
+    };
+
+    const { data, kpis } = runSimulation(params);
+
+    expect(data[0].subsidy).toBeCloseTo(1000, 6);
+    expect(data[1].cumulativeSubsidy).toBeCloseTo(2000, 6);
+    expect(kpis.finalMonthlySubsidy).toBeCloseTo(1000, 6);
+    expect(kpis.cumulativeSubsidy).toBeCloseTo(2000, 6);
   });
 });

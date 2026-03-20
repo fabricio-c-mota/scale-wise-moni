@@ -4,8 +4,8 @@ import { Label } from "@/components/ui/label";
 interface Props {
   label: string;
   value: number;
-  min: number;
-  max: number;
+  min?: number;
+  max?: number;
   step: number;
   onChange: (v: number) => void;
   format?: (v: number) => string;
@@ -19,8 +19,10 @@ export function ParamInput({ label, value, min, max, step, onChange, format, suf
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = parseFloat(e.target.value);
     if (!isNaN(raw)) {
-      const clamped = Math.min(max, Math.max(min, raw));
-      onChange(clamped);
+      let next = raw;
+      if (typeof min === "number") next = Math.max(min, next);
+      if (typeof max === "number") next = Math.min(max, next);
+      onChange(next);
     }
   };
 
