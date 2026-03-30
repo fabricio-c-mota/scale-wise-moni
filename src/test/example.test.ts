@@ -6,6 +6,7 @@ describe("runSimulation", () => {
     const params: SimParams = {
       n0: 100,
       growthRate: 0,
+      maxCustomers: 10000,
       months: 1,
       ticket: 100,
       alpha: 1,
@@ -34,6 +35,7 @@ describe("runSimulation", () => {
     const params: SimParams = {
       n0: 100,
       growthRate: 0,
+      maxCustomers: 10000,
       months: 2,
       ticket: 100,
       alpha: 1,
@@ -53,12 +55,16 @@ describe("runSimulation", () => {
     const withLowerFixedCosts = runSimulation({ ...params, fixedCosts: 0 });
     expect(withLowerFixedCosts.kpis.breakEvenMonth).toBe(2);
     expect(withLowerFixedCosts.kpis.breakEvenCustomers).toBe(100);
+    expect(withLowerFixedCosts.kpis.cumulativeBreakEvenMonth).toBeNull();
+    expect(withLowerFixedCosts.kpis.minCumulativeProfit).toBeCloseTo(-500, 6);
+    expect(withLowerFixedCosts.kpis.requiredCashReserve).toBeCloseTo(600, 6);
   });
 
   it("calcula condicao de viabilidade com base em alpha", () => {
     const params: SimParams = {
       n0: 1000,
       growthRate: 0,
+      maxCustomers: 10000,
       months: 1,
       ticket: 150,
       alpha: 1.05,
@@ -80,6 +86,7 @@ describe("runSimulation", () => {
     const params: SimParams = {
       n0: 100,
       growthRate: 0,
+      maxCustomers: 10000,
       months: 2,
       ticket: 200,
       alpha: 1.05,

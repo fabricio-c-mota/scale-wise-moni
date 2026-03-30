@@ -1,6 +1,7 @@
 export interface SimParams {
   n0: number;         // initial customers
   growthRate: number;  // monthly growth rate (r)
+  maxCustomers: number; // carrying capacity (N_max)
   months: number;      // simulation horizon
   ticket: number;      // avg monthly ticket (T)
   alpha: number;       // credit factor
@@ -43,6 +44,10 @@ export interface KPIs {
   breakEvenMonth: number | null;
   breakEvenCustomers: number | null;
   breakEvenDetails: BreakEvenDetails | null;
+  cumulativeBreakEvenMonth: number | null;
+  cumulativeBreakEvenCustomers: number | null;
+  minCumulativeProfit: number;
+  requiredCashReserve: number;
   paybackMonths: number;
   ltv: number;
   ltvCacRatio: number;
@@ -62,11 +67,27 @@ export function runSimulation(p: SimParams): { data: MonthData[]; kpis: KPIs } {
   let breakEvenMonth: number | null = null;
   let breakEvenCustomers: number | null = null;
   let breakEvenDetails: BreakEvenDetails | null = null;
+  let cumulativeBreakEvenMonth: number | null = null;
+  let cumulativeBreakEvenCustomers: number | null = null;
+  let minCumulativeProfit = 0;
+
+  const projectedCustomers = (t: number) => {
+    const n0 = Math.max(0, p.n0);
+    const nMax = Math.max(1, p.maxCustomers);
+
+    if (n0 <= 0) return 0;
+    if (n0 >= nMax) return Math.round(nMax);
+
+    // Logistic growth with carrying capacity (N_max)
+    const ratio = (nMax - n0) / n0;
+    const customers = nMax / (1 + ratio * Math.exp(-p.growthRate * t));
+    return Math.round(Math.min(nMax, Math.max(0, customers)));
+  };
 
   for (let t = 0; t < p.months; t++) {
-    const customers = Math.round(p.n0 * Math.pow(1 + p.growthRate, t));
-    const prevCustomers = t === 0 ? 0 : Math.round(p.n0 * Math.pow(1 + p.growthRate, t - 1));
-    const newCustomers = t === 0 ? customers : customers - prevCustomers;
+    const customers = projectedCustomers(t);
+    const prevCustomers = t === 0 ? 0 : projectedCustomers(t - 1);
+    const newCustomers = t === 0 ? customers : Math.max(0, customers - prevCustomers);
 
     const revenue = customers * p.ticket;
     const volume = revenue;
@@ -80,6 +101,7 @@ export function runSimulation(p: SimParams): { data: MonthData[]; kpis: KPIs } {
     const totalCost = productCost + cacCost + p.fixedCosts;
     const profit = revenue - totalCost;
     cumProfit += profit;
+    minCumulativeProfit = Math.min(minCumulativeProfit, cumProfit);
 
     if (breakEvenMonth === null && profit >= 0) {
       breakEvenMonth = t + 1;
@@ -93,6 +115,11 @@ export function runSimulation(p: SimParams): { data: MonthData[]; kpis: KPIs } {
         cumulativeLoss: cumProfit - profit, // accumulated loss before this month
         marginPerClient: p.ticket - (p.ticket * p.alpha * (1 - marginPct)),
       };
+    }
+
+    if (cumulativeBreakEvenMonth === null && cumProfit >= 0) {
+      cumulativeBreakEvenMonth = t + 1;
+      cumulativeBreakEvenCustomers = customers;
     }
 
     const marginPerClient = p.ticket - (p.ticket * p.alpha * (1 - marginPct));
@@ -124,6 +151,7 @@ export function runSimulation(p: SimParams): { data: MonthData[]; kpis: KPIs } {
   const viabilityMarginThresholdPct = (p.alpha - 1) * 100;
   const finalRetailMarginPct = lastMonth.marginPct;
   const isViableAtFinalMonth = finalRetailMarginPct > viabilityMarginThresholdPct;
+  const requiredCashReserve = minCumulativeProfit < 0 ? Math.abs(minCumulativeProfit) * 1.2 : 0;
 
   return {
     data,
@@ -131,6 +159,10 @@ export function runSimulation(p: SimParams): { data: MonthData[]; kpis: KPIs } {
       breakEvenMonth,
       breakEvenCustomers,
       breakEvenDetails,
+      cumulativeBreakEvenMonth,
+      cumulativeBreakEvenCustomers,
+      minCumulativeProfit: Math.round(minCumulativeProfit * 100) / 100,
+      requiredCashReserve: Math.round(requiredCashReserve * 100) / 100,
       paybackMonths: Math.round(paybackMonths * 10) / 10,
       ltv: Math.round(ltv * 100) / 100,
       ltvCacRatio: Math.round(ltvCacRatio * 100) / 100,

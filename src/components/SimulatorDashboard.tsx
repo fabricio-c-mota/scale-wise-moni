@@ -9,31 +9,37 @@ import { KpiCard } from "./KpiCard";
 import { BreakEvenCard } from "./BreakEvenCard";
 
 const DEFAULT_PARAMS: SimParams = {
-  n0: 100,
-  growthRate: 0.12,
-  months: 24,
-  ticket: 150,
-  alpha: 1.05,
-  mMax: 0.12,
-  k: 0.00008,
-  cac: 40,
-  fixedCosts: 1000,
-  retention: 15,
+  n0: 10,
+  growthRate: 0.2,
+  maxCustomers: 170,
+  months: 12,
+  ticket: 200,
+  alpha: 1.14,
+  mMax: 0.3,
+  k: 0.00022,
+  cac: 50,
+  fixedCosts: 550,
+  retention: 12,
 };
 
 const SCENARIOS: Record<"pessimista" | "realista" | "otimista", SimParams> = {
   pessimista: {
     ...DEFAULT_PARAMS,
-    alpha: 1.12,
-    mMax: 0.1,
-    cac: 90,
+    growthRate: 0.18,
+    alpha: 1.16,
+    mMax: 0.27,
+    cac: 60,
+    fixedCosts: 600,
   },
   realista: DEFAULT_PARAMS,
   otimista: {
     ...DEFAULT_PARAMS,
-    alpha: 1.03,
-    mMax: 0.2,
-    cac: 35,
+    growthRate: 0.24,
+    alpha: 1.1,
+    mMax: 0.32,
+    k: 0.00025,
+    cac: 40,
+    fixedCosts: 500,
   },
 };
 
@@ -88,7 +94,8 @@ export function SimulatorDashboard() {
 
   const variableGlossary = [
     { symbol: "N0", name: "Clientes iniciais", value: `${params.n0}`, meaning: "Base de clientes no mês 1." },
-    { symbol: "r", name: "Crescimento mensal", value: `${(params.growthRate * 100).toFixed(1)}%`, meaning: "Taxa de expansão da base a cada mês." },
+    { symbol: "r", name: "Velocidade de crescimento", value: `${(params.growthRate * 100).toFixed(1)}%`, meaning: "Controla a inclinação da curva logística de clientes." },
+    { symbol: "N_max", name: "Teto de clientes", value: `${params.maxCustomers.toFixed(0)}`, meaning: "Capacidade máxima da base; limita o crescimento no longo prazo." },
     { symbol: "T", name: "Ticket médio", value: fmt(params.ticket), meaning: "Receita mensal média por cliente." },
     { symbol: "alpha", name: "Fator de crédito", value: params.alpha.toFixed(2), meaning: "Multiplica o crédito concedido ao cliente." },
     { symbol: "mMax", name: "Margem máxima varejista", value: `${(params.mMax * 100).toFixed(1)}%`, meaning: "Teto da margem negociável com escala." },
@@ -244,6 +251,7 @@ export function SimulatorDashboard() {
           <div className="grid grid-cols-2 gap-3">
             <ParamInput label="Clientes iniciais" value={params.n0} min={0} step={10} onChange={set("n0")} />
             <ParamInput label="Crescimento mensal" value={params.growthRate} min={-0.99} step={0.01} onChange={set("growthRate")} />
+            <ParamInput label="Teto máximo de clientes" value={params.maxCustomers} min={1} step={100} onChange={set("maxCustomers")} />
             <ParamInput label="Horizonte (meses)" value={params.months} min={1} step={1} onChange={set("months")} suffix="meses" />
             <ParamInput label="Ticket médio" value={params.ticket} min={0} step={10} onChange={set("ticket")} suffix="R$" />
             <ParamInput label="Fator de crédito (α)" value={params.alpha} min={0} step={0.01} onChange={set("alpha")} />
@@ -418,7 +426,7 @@ export function SimulatorDashboard() {
 
         <div className="bg-card border border-border rounded-lg p-5 animate-fade-in space-y-3">
           <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Como tudo funciona</h3>
-          <p className="text-sm text-muted-foreground">1. O sistema projeta clientes mês a mês usando N(t) = N0 * (1 + r)^t.</p>
+          <p className="text-sm text-muted-foreground">1. O sistema projeta clientes mês a mês com curva logística: N(t) = N_max / (1 + ((N_max - N0)/N0) * e^(-r*t)).</p>
           <p className="text-sm text-muted-foreground">2. Calcula o subsídio recorrente: S_t = N_t * T * (alpha - 1), custo estrutural do modelo no início.</p>
           <p className="text-sm text-muted-foreground">3. O CAC é pontual e só incide em novos clientes (não é custo recorrente mensal da base inteira).</p>
           <p className="text-sm text-muted-foreground">4. Aplica margem por escala m(V_t) e calcula lucro: receita - custo_produto - custo_fixo - CAC.</p>
@@ -429,7 +437,7 @@ export function SimulatorDashboard() {
       <div className="mt-6 bg-card border border-border rounded-lg p-5 animate-fade-in shadow-sm">
         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">O que cada gráfico mostra</h3>
         <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-3 text-sm">
-          <GraphHint title="Crescimento de Clientes" text="Evolução da base ao longo do tempo; confirma se a taxa r está gerando escala." />
+          <GraphHint title="Crescimento de Clientes" text="Evolução da base em curva logística; valida velocidade de crescimento e aproximação do teto N_max." />
           <GraphHint title="Receita vs Custo Total" text="Compara entrada e saída de caixa mensal para visualizar aproximação do equilíbrio." />
           <GraphHint title="Lucro Mensal" text="Mostra quando o resultado mensal cruza zero e quando o negócio fica positivo." />
           <GraphHint title="Margem do Varejista vs Volume" text="Mostra ganho de poder de negociação com aumento de volume (escala)." />
