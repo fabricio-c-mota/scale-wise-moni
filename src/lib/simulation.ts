@@ -46,6 +46,8 @@ export interface KPIs {
   breakEvenDetails: BreakEvenDetails | null;
   cumulativeBreakEvenMonth: number | null;
   cumulativeBreakEvenCustomers: number | null;
+  subsidyBreakEvenMonth: number | null;
+  subsidyBreakEvenDetails: BreakEvenDetails | null;
   minCumulativeProfit: number;
   requiredCashReserve: number;
   paybackMonths: number;
@@ -69,6 +71,8 @@ export function runSimulation(p: SimParams): { data: MonthData[]; kpis: KPIs } {
   let breakEvenDetails: BreakEvenDetails | null = null;
   let cumulativeBreakEvenMonth: number | null = null;
   let cumulativeBreakEvenCustomers: number | null = null;
+  let subsidyBreakEvenMonth: number | null = null;
+  let subsidyBreakEvenDetails: BreakEvenDetails | null = null;
   let minCumulativeProfit = 0;
 
   const projectedCustomers = (t: number) => {
@@ -92,11 +96,14 @@ export function runSimulation(p: SimParams): { data: MonthData[]; kpis: KPIs } {
     const revenue = customers * p.ticket;
     const volume = revenue;
     const marginPct = p.mMax * (1 - Math.exp(-p.k * volume));
-    const subsidy = customers * p.ticket * (p.alpha - 1);
-    cumSubsidy += subsidy;
-
+    
+    // Subsidy is when platform pays more than it receives
+    // Only occurs when productCost > revenue (margin too low for credit offered)
     const creditCost = customers * p.ticket * p.alpha;
     const productCost = creditCost * (1 - marginPct);
+    const subsidy = Math.max(0, productCost - revenue);
+    cumSubsidy += subsidy;
+
     const cacCost = p.cac * newCustomers;
     const totalCost = productCost + cacCost + p.fixedCosts;
     const profit = revenue - totalCost;
@@ -120,6 +127,19 @@ export function runSimulation(p: SimParams): { data: MonthData[]; kpis: KPIs } {
     if (cumulativeBreakEvenMonth === null && cumProfit >= 0) {
       cumulativeBreakEvenMonth = t + 1;
       cumulativeBreakEvenCustomers = customers;
+    }
+
+    if (subsidyBreakEvenMonth === null && subsidy === 0) {
+      subsidyBreakEvenMonth = t + 1;
+      subsidyBreakEvenDetails = {
+        month: t + 1,
+        customers,
+        revenue,
+        totalCost,
+        marginPct: marginPct * 100,
+        cumulativeLoss: cumProfit - profit,
+        marginPerClient: p.ticket - (p.ticket * p.alpha * (1 - marginPct)),
+      };
     }
 
     const marginPerClient = p.ticket - (p.ticket * p.alpha * (1 - marginPct));
@@ -148,7 +168,7 @@ export function runSimulation(p: SimParams): { data: MonthData[]; kpis: KPIs } {
   const paybackMonths = avgMarginPerClient > 0 ? p.cac / avgMarginPerClient : Infinity;
   const ltv = avgMarginPerClient * p.retention;
   const ltvCacRatio = p.cac > 0 ? ltv / p.cac : Infinity;
-  const viabilityMarginThresholdPct = (p.alpha - 1) * 100;
+  const viabilityMarginThresholdPct = (1 - (1 / p.alpha)) * 100;
   const finalRetailMarginPct = lastMonth.marginPct;
   const isViableAtFinalMonth = finalRetailMarginPct > viabilityMarginThresholdPct;
   const requiredCashReserve = minCumulativeProfit < 0 ? Math.abs(minCumulativeProfit) * 1.2 : 0;
@@ -161,6 +181,8 @@ export function runSimulation(p: SimParams): { data: MonthData[]; kpis: KPIs } {
       breakEvenDetails,
       cumulativeBreakEvenMonth,
       cumulativeBreakEvenCustomers,
+      subsidyBreakEvenMonth,
+      subsidyBreakEvenDetails,
       minCumulativeProfit: Math.round(minCumulativeProfit * 100) / 100,
       requiredCashReserve: Math.round(requiredCashReserve * 100) / 100,
       paybackMonths: Math.round(paybackMonths * 10) / 10,

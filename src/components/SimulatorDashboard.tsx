@@ -12,13 +12,13 @@ const DEFAULT_PARAMS: SimParams = {
   n0: 10,
   growthRate: 0.2,
   maxCustomers: 170,
-  months: 12,
-  ticket: 200,
+  months: 24,
+  ticket: 350,
   alpha: 1.14,
   mMax: 0.3,
-  k: 0.00022,
+  k: 0.00012,
   cac: 50,
-  fixedCosts: 550,
+  fixedCosts: 3500,
   retention: 12,
 };
 
@@ -28,8 +28,9 @@ const SCENARIOS: Record<"pessimista" | "realista" | "otimista", SimParams> = {
     growthRate: 0.18,
     alpha: 1.16,
     mMax: 0.27,
+    k: 0.0001,
     cac: 60,
-    fixedCosts: 600,
+    fixedCosts: 4000,
   },
   realista: DEFAULT_PARAMS,
   otimista: {
@@ -37,9 +38,9 @@ const SCENARIOS: Record<"pessimista" | "realista" | "otimista", SimParams> = {
     growthRate: 0.24,
     alpha: 1.1,
     mMax: 0.32,
-    k: 0.00025,
+    k: 0.00015,
     cac: 40,
-    fixedCosts: 500,
+    fixedCosts: 3000,
   },
 };
 
